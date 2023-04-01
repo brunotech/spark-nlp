@@ -28,11 +28,12 @@ class SparkSessionForTest:
     spark.sparkContext.setLogLevel("WARN")
 
 
+
+
 class SparkContextForTest:
     spark = SparkSessionForTest.spark
-    data = spark. \
-        read \
-        .parquet("file:///" + os.getcwd() + "/../src/test/resources/sentiment.parquet") \
-        .limit(100)
+    data = spark.read.parquet(
+        f"file:///{os.getcwd()}/../src/test/resources/sentiment.parquet"
+    ).limit(100)
     data.cache()
     data.count()

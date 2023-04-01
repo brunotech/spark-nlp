@@ -4485,9 +4485,9 @@ class NerCrfApproach(AnnotatorApproach, NerApproach):
             maxEpochs=1000,
             l2=float(1),
             c0=2250000,
-            lossEps=float(1e-3),
+            lossEps=0.001,
             verbose=4,
-            includeConfidence=False
+            includeConfidence=False,
         )
 
 
@@ -4992,22 +4992,22 @@ class NerDLApproach(AnnotatorApproach, NerApproach):
     @keyword_only
     def __init__(self):
         super(NerDLApproach, self).__init__(classname="com.johnsnowlabs.nlp.annotators.ner.dl.NerDLApproach")
-        uc = False if sys.platform == 'win32' else True
+        uc = sys.platform != 'win32'
         self._setDefault(
             minEpochs=0,
             maxEpochs=50,
-            lr=float(0.001),
-            po=float(0.005),
+            lr=0.001,
+            po=0.005,
             batchSize=8,
-            dropout=float(0.5),
+            dropout=0.5,
             verbose=2,
             useContrib=uc,
-            validationSplit=float(0.0),
+            validationSplit=0.0,
             evaluationLogExtended=False,
             includeConfidence=False,
             includeAllConfidenceScores=False,
             enableOutputLogs=False,
-            enableMemoryOptimizer=False
+            enableMemoryOptimizer=False,
         )
 
 
@@ -6701,9 +6701,7 @@ class SentenceEmbeddings(AnnotatorModel, HasEmbeddingsProperties, HasStorageRef)
         [type]
             [description]
         """
-        if strategy == "AVERAGE":
-            return self._set(poolingStrategy=strategy)
-        elif strategy == "SUM":
+        if strategy in ["AVERAGE", "SUM"]:
             return self._set(poolingStrategy=strategy)
         else:
             return self._set(poolingStrategy="AVERAGE")
@@ -6841,7 +6839,7 @@ class StopWordsCleaner(AnnotatorModel):
         """
         return self._set(locale=value)
 
-    def loadDefaultStopWords(language="english"):
+    def loadDefaultStopWords(self):
         """Loads the default stop words for the given language.
 
         Supported languages: danish, dutch, english, finnish, french, german,
@@ -6855,7 +6853,7 @@ class StopWordsCleaner(AnnotatorModel):
         """
         from pyspark.ml.wrapper import _jvm
         stopWordsObj = _jvm().org.apache.spark.ml.feature.StopWordsRemover
-        return list(stopWordsObj.loadDefaultStopWords(language))
+        return list(stopWordsObj.loadDefaultStopWords(self))
 
     @staticmethod
     def pretrained(name="stopwords_en", lang="en", remote_loc=None):
@@ -7111,9 +7109,7 @@ class ChunkEmbeddings(AnnotatorModel):
         strategy : str
             Aggregation Strategy
         """
-        if strategy == "AVERAGE":
-            return self._set(poolingStrategy=strategy)
-        elif strategy == "SUM":
+        if strategy in ["AVERAGE", "SUM"]:
             return self._set(poolingStrategy=strategy)
         else:
             return self._set(poolingStrategy="AVERAGE")
@@ -7611,13 +7607,7 @@ class ElmoEmbeddings(AnnotatorModel, HasEmbeddingsProperties, HasCaseSensitivePr
         layer : str
             ELMO pooling layer
         """
-        if layer == "word_emb":
-            return self._set(poolingLayer=layer)
-        elif layer == "lstm_outputs1":
-            return self._set(poolingLayer=layer)
-        elif layer == "lstm_outputs2":
-            return self._set(poolingLayer=layer)
-        elif layer == "elmo":
+        if layer in ["word_emb", "lstm_outputs1", "lstm_outputs2", "elmo"]:
             return self._set(poolingLayer=layer)
         else:
             return self._set(poolingLayer="word_emb")
@@ -7924,10 +7914,10 @@ class ClassifierDLApproach(AnnotatorApproach):
             classname="com.johnsnowlabs.nlp.annotators.classifier.dl.ClassifierDLApproach")
         self._setDefault(
             maxEpochs=30,
-            lr=float(0.005),
+            lr=0.005,
             batchSize=64,
-            dropout=float(0.5),
-            enableOutputLogs=False
+            dropout=0.5,
+            enableOutputLogs=False,
         )
 
 
@@ -9574,12 +9564,12 @@ class SentimentDLApproach(AnnotatorApproach):
             classname="com.johnsnowlabs.nlp.annotators.classifier.dl.SentimentDLApproach")
         self._setDefault(
             maxEpochs=30,
-            lr=float(0.005),
+            lr=0.005,
             batchSize=64,
-            dropout=float(0.5),
+            dropout=0.5,
             enableOutputLogs=False,
             threshold=0.6,
-            thresholdLabel="neutral"
+            thresholdLabel="neutral",
         )
 
 
@@ -10201,13 +10191,13 @@ class MultiClassifierDLApproach(AnnotatorApproach):
             classname="com.johnsnowlabs.nlp.annotators.classifier.dl.MultiClassifierDLApproach")
         self._setDefault(
             maxEpochs=10,
-            lr=float(0.001),
+            lr=0.001,
             batchSize=64,
-            validationSplit=float(0.0),
-            threshold=float(0.5),
+            validationSplit=0.0,
+            threshold=0.5,
             randomSeed=44,
             shufflePerEpoch=False,
-            enableOutputLogs=False
+            enableOutputLogs=False,
         )
 
 
@@ -10310,9 +10300,7 @@ class MultiClassifierDLModel(AnnotatorModel, HasStorageRef):
             classname=classname,
             java_model=java_model
         )
-        self._setDefault(
-            threshold=float(0.5)
-        )
+        self._setDefault(threshold=0.5)
 
     configProtoBytes = Param(Params._dummy(), "configProtoBytes",
                              "ConfigProto from tensorflow, serialized into byte array. Get with config_proto.SerializeToString()",
@@ -10595,7 +10583,7 @@ class YakeModel(AnnotatorModel):
         """
         return self.getOrDefault(self.stopWords)
 
-    def loadDefaultStopWords(language="english"):
+    def loadDefaultStopWords(self):
         """Loads the default stop words for the given language.
 
         Supported languages: danish, dutch, english, finnish, french, german,
@@ -10609,7 +10597,7 @@ class YakeModel(AnnotatorModel):
         """
         from pyspark.ml.wrapper import _jvm
         stopWordsObj = _jvm().org.apache.spark.ml.feature.StopWordsRemover
-        return list(stopWordsObj.loadDefaultStopWords(language))
+        return list(stopWordsObj.loadDefaultStopWords(self))
 
 
 class SentenceDetectorDLModel(AnnotatorModel):

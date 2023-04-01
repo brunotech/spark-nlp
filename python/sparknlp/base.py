@@ -80,17 +80,17 @@ class LightPipeline:
 
     @staticmethod
     def _annotation_from_java(java_annotations):
-        annotations = []
-        for annotation in java_annotations:
-            annotations.append(Annotation(annotation.annotatorType(),
-                                          annotation.begin(),
-                                          annotation.end(),
-                                          annotation.result(),
-                                          annotation.metadata(),
-                                          annotation.embeddings
-                                          )
-                               )
-        return annotations
+        return [
+            Annotation(
+                annotation.annotatorType(),
+                annotation.begin(),
+                annotation.end(),
+                annotation.result(),
+                annotation.metadata(),
+                annotation.embeddings,
+            )
+            for annotation in java_annotations
+        ]
 
     def fullAnnotate(self, target):
         """Annotates the data provided into `Annotation` type results.
@@ -128,9 +128,10 @@ class LightPipeline:
         if type(target) is str:
             target = [target]
         for row in self._lightPipeline.fullAnnotateJava(target):
-            kas = {}
-            for atype, annotations in row.items():
-                kas[atype] = self._annotation_from_java(annotations)
+            kas = {
+                atype: self._annotation_from_java(annotations)
+                for atype, annotations in row.items()
+            }
             result.append(kas)
         return result
 
@@ -248,9 +249,8 @@ class RecursivePipeline(Pipeline, JavaEstimator):
     def _fit(self, dataset):
         stages = self.getStages()
         for stage in stages:
-            if not (isinstance(stage, Estimator) or isinstance(stage, Transformer)):
-                raise TypeError(
-                    "Cannot recognize a pipeline stage of type %s." % type(stage))
+            if not (isinstance(stage, (Estimator, Transformer))):
+                raise TypeError(f"Cannot recognize a pipeline stage of type {type(stage)}.")
         indexOfLastEstimator = -1
         for i, stage in enumerate(stages):
             if isinstance(stage, Estimator):
@@ -292,9 +292,7 @@ class RecursivePipelineModel(PipelineModel):
             if isinstance(t, HasRecursiveTransform):
                 # drops current stage from the recursive pipeline within
                 dataset = t.transform_recursive(dataset, PipelineModel(self.stages[:-1]))
-            elif isinstance(t, AnnotatorProperties) and t.getLazyAnnotator():
-                pass
-            else:
+            elif not isinstance(t, AnnotatorProperties) or not t.getLazyAnnotator():
                 dataset = t.transform(dataset)
         return dataset
 

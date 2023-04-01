@@ -305,7 +305,7 @@ class AnnotatorApproach(JavaEstimator, JavaMLWritable, _internal.AnnotatorJavaML
         self._setDefault(lazyAnnotator=False)
 
     def _create_model(self, java_model):
-        raise NotImplementedError('Please implement _create_model in %s' % self)
+        raise NotImplementedError(f'Please implement _create_model in {self}')
 
 
 class RecursiveAnnotatorApproach(_internal.RecursiveEstimator, JavaMLWritable, _internal.AnnotatorJavaMLReadable, AnnotatorProperties,
@@ -318,7 +318,7 @@ class RecursiveAnnotatorApproach(_internal.RecursiveEstimator, JavaMLWritable, _
         self._setDefault(lazyAnnotator=False)
 
     def _create_model(self, java_model):
-        raise NotImplementedError('Please implement _create_model in %s' % self)
+        raise NotImplementedError(f'Please implement _create_model in {self}')
 
 
 def RegexRule(rule, identifier):
