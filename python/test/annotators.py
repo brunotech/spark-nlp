@@ -72,14 +72,18 @@ class RegexMatcherTestSpec(unittest.TestCase):
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
-            .setInputCol("text") \
-            .setOutputCol("document")
-        regex_matcher = RegexMatcher() \
-            .setInputCols(['document']) \
-            .setStrategy("MATCH_ALL") \
-            .setExternalRules(path="file:///" + os.getcwd() + "/../src/test/resources/regex-matcher/rules.txt",
-                              delimiter=",") \
+                .setInputCol("text") \
+                .setOutputCol("document")
+        regex_matcher = (
+            RegexMatcher()
+            .setInputCols(['document'])
+            .setStrategy("MATCH_ALL")
+            .setExternalRules(
+                path=f"file:///{os.getcwd()}/../src/test/resources/regex-matcher/rules.txt",
+                delimiter=",",
+            )
             .setOutputCol("regex")
+        )
         assembled = document_assembler.transform(self.data)
         regex_matcher.fit(assembled).transform(assembled).show()
 
@@ -91,16 +95,21 @@ class LemmatizerTestSpec(unittest.TestCase):
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
-            .setInputCol("text") \
-            .setOutputCol("document")
+                .setInputCol("text") \
+                .setOutputCol("document")
         tokenizer = Tokenizer() \
-            .setInputCols(["document"]) \
-            .setOutputCol("token")
-        lemmatizer = Lemmatizer() \
-            .setInputCols(["token"]) \
-            .setOutputCol("lemma") \
-            .setDictionary(path="file:///" + os.getcwd() + "/../src/test/resources/lemma-corpus-small/lemmas_small.txt",
-                           key_delimiter="->", value_delimiter="\t")
+                .setInputCols(["document"]) \
+                .setOutputCol("token")
+        lemmatizer = (
+            Lemmatizer()
+            .setInputCols(["token"])
+            .setOutputCol("lemma")
+            .setDictionary(
+                path=f"file:///{os.getcwd()}/../src/test/resources/lemma-corpus-small/lemmas_small.txt",
+                key_delimiter="->",
+                value_delimiter="\t",
+            )
+        )
         assembled = document_assembler.transform(self.data)
         tokenized = tokenizer.fit(assembled).transform(assembled)
         lemmatizer.fit(tokenized).transform(tokenized).show()
@@ -110,7 +119,7 @@ class LemmatizerWithTrainingDataSetTestSpec(unittest.TestCase):
 
     def setUp(self):
         self.spark = SparkContextForTest.spark
-        self.conllu_file = "file:///" + os.getcwd() + "/../src/test/resources/conllu/en.test.lemma.conllu"
+        self.conllu_file = f"file:///{os.getcwd()}/../src/test/resources/conllu/en.test.lemma.conllu"
 
     def runTest(self):
         test_dataset = self.spark.createDataFrame([["So what happened?"]]).toDF("text")
@@ -163,18 +172,22 @@ class ChunkTokenizerTestSpec(unittest.TestCase):
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
-            .setInputCol("text") \
-            .setOutputCol("document")
+                .setInputCol("text") \
+                .setOutputCol("document")
         tokenizer = Tokenizer() \
-            .setInputCols(["document"]) \
-            .setOutputCol("token")
-        entity_extractor = TextMatcher() \
-            .setInputCols(['document', 'token']) \
-            .setOutputCol("entity") \
-            .setEntities(path="file:///" + os.getcwd() + "/../src/test/resources/entity-extractor/test-chunks.txt")
+                .setInputCols(["document"]) \
+                .setOutputCol("token")
+        entity_extractor = (
+            TextMatcher()
+            .setInputCols(['document', 'token'])
+            .setOutputCol("entity")
+            .setEntities(
+                path=f"file:///{os.getcwd()}/../src/test/resources/entity-extractor/test-chunks.txt"
+            )
+        )
         chunk_tokenizer = ChunkTokenizer() \
-            .setInputCols(['entity']) \
-            .setOutputCol('chunk_token')
+                .setInputCols(['entity']) \
+                .setOutputCol('chunk_token')
 
         pipeline = Pipeline(stages=[document_assembler, tokenizer, entity_extractor, chunk_tokenizer])
 
@@ -238,15 +251,19 @@ class TextMatcherTestSpec(unittest.TestCase):
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
-            .setInputCol("text") \
-            .setOutputCol("document")
+                .setInputCol("text") \
+                .setOutputCol("document")
         tokenizer = Tokenizer() \
-            .setInputCols(["document"]) \
-            .setOutputCol("token")
-        entity_extractor = TextMatcher() \
-            .setInputCols(['document', 'token']) \
-            .setOutputCol("entity") \
-            .setEntities(path="file:///" + os.getcwd() + "/../src/test/resources/entity-extractor/test-phrases.txt")
+                .setInputCols(["document"]) \
+                .setOutputCol("token")
+        entity_extractor = (
+            TextMatcher()
+            .setInputCols(['document', 'token'])
+            .setOutputCol("entity")
+            .setEntities(
+                path=f"file:///{os.getcwd()}/../src/test/resources/entity-extractor/test-phrases.txt"
+            )
+        )
         assembled = document_assembler.transform(self.data)
         tokenized = tokenizer.fit(assembled).transform(assembled)
         entity_extractor.fit(tokenized).transform(tokenized).show()
@@ -317,10 +334,14 @@ class PerceptronApproachTestSpec(unittest.TestCase):
     def setUp(self):
         from sparknlp.training import POS
         self.data = SparkContextForTest.data
-        self.train = POS().readDataset(SparkContextForTest.spark,
-                                       os.getcwd() + "/../src/test/resources/anc-pos-corpus-small/test-training.txt",
-                                       delimiter="|", outputPosCol="tags", outputDocumentCol="document",
-                                       outputTextCol="text")
+        self.train = POS().readDataset(
+            SparkContextForTest.spark,
+            f"{os.getcwd()}/../src/test/resources/anc-pos-corpus-small/test-training.txt",
+            delimiter="|",
+            outputPosCol="tags",
+            outputDocumentCol="document",
+            outputTextCol="text",
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -349,10 +370,14 @@ class ChunkerTestSpec(unittest.TestCase):
     def setUp(self):
         from sparknlp.training import POS
         self.data = SparkContextForTest.data
-        self.train_pos = POS().readDataset(SparkContextForTest.spark,
-                                           os.getcwd() + "/../src/test/resources/anc-pos-corpus-small/test-training.txt",
-                                           delimiter="|", outputPosCol="tags", outputDocumentCol="document",
-                                           outputTextCol="text")
+        self.train_pos = POS().readDataset(
+            SparkContextForTest.spark,
+            f"{os.getcwd()}/../src/test/resources/anc-pos-corpus-small/test-training.txt",
+            delimiter="|",
+            outputPosCol="tags",
+            outputDocumentCol="document",
+            outputTextCol="text",
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -409,25 +434,33 @@ class PragmaticScorerTestSpec(unittest.TestCase):
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
-            .setInputCol("text") \
-            .setOutputCol("document")
+                .setInputCol("text") \
+                .setOutputCol("document")
         sentence_detector = SentenceDetector() \
-            .setInputCols(["document"]) \
-            .setOutputCol("sentence")
+                .setInputCols(["document"]) \
+                .setOutputCol("sentence")
         tokenizer = Tokenizer() \
-            .setInputCols(["sentence"]) \
-            .setOutputCol("token")
-        lemmatizer = Lemmatizer() \
-            .setInputCols(["token"]) \
-            .setOutputCol("lemma") \
-            .setDictionary(path="file:///" + os.getcwd() + "/../src/test/resources/lemma-corpus-small/lemmas_small.txt",
-                           key_delimiter="->", value_delimiter="\t")
-        sentiment_detector = SentimentDetector() \
-            .setInputCols(["lemma", "sentence"]) \
-            .setOutputCol("sentiment") \
+                .setInputCols(["sentence"]) \
+                .setOutputCol("token")
+        lemmatizer = (
+            Lemmatizer()
+            .setInputCols(["token"])
+            .setOutputCol("lemma")
             .setDictionary(
-            "file:///" + os.getcwd() + "/../src/test/resources/sentiment-corpus/default-sentiment-dict.txt",
-            delimiter=",")
+                path=f"file:///{os.getcwd()}/../src/test/resources/lemma-corpus-small/lemmas_small.txt",
+                key_delimiter="->",
+                value_delimiter="\t",
+            )
+        )
+        sentiment_detector = (
+            SentimentDetector()
+            .setInputCols(["lemma", "sentence"])
+            .setOutputCol("sentiment")
+            .setDictionary(
+                f"file:///{os.getcwd()}/../src/test/resources/sentiment-corpus/default-sentiment-dict.txt",
+                delimiter=",",
+            )
+        )
         assembled = document_assembler.transform(self.data)
         sentenced = sentence_detector.transform(assembled)
         tokenized = tokenizer.fit(sentenced).transform(sentenced)
@@ -442,27 +475,32 @@ class PipelineTestSpec(unittest.TestCase):
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
-            .setInputCol("text") \
-            .setOutputCol("document")
+                .setInputCol("text") \
+                .setOutputCol("document")
         tokenizer = Tokenizer() \
-            .setInputCols(["document"]) \
-            .setOutputCol("token")
-        lemmatizer = Lemmatizer() \
-            .setInputCols(["token"]) \
-            .setOutputCol("lemma") \
-            .setDictionary("file:///" + os.getcwd() + "/../src/test/resources/lemma-corpus-small/simple.txt",
-                           key_delimiter="->", value_delimiter="\t")
+                .setInputCols(["document"]) \
+                .setOutputCol("token")
+        lemmatizer = (
+            Lemmatizer()
+            .setInputCols(["token"])
+            .setOutputCol("lemma")
+            .setDictionary(
+                f"file:///{os.getcwd()}/../src/test/resources/lemma-corpus-small/simple.txt",
+                key_delimiter="->",
+                value_delimiter="\t",
+            )
+        )
         finisher = Finisher() \
-            .setInputCols(["token", "lemma"]) \
-            .setOutputCols(["token_views", "lemma_views"]) \
-            .setOutputAsArray(False) \
-            .setAnnotationSplitSymbol('@') \
-            .setValueSplitSymbol('#')
+                .setInputCols(["token", "lemma"]) \
+                .setOutputCols(["token_views", "lemma_views"]) \
+                .setOutputAsArray(False) \
+                .setAnnotationSplitSymbol('@') \
+                .setValueSplitSymbol('#')
         pipeline = Pipeline(stages=[document_assembler, tokenizer, lemmatizer, finisher])
         model = pipeline.fit(self.data)
         token_before_save = model.transform(self.data).select("token_views").take(1)[0].token_views.split("@")[2]
         lemma_before_save = model.transform(self.data).select("lemma_views").take(1)[0].lemma_views.split("@")[2]
-        pipe_path = "file:///" + os.getcwd() + "/tmp_pipeline"
+        pipe_path = f"file:///{os.getcwd()}/tmp_pipeline"
         pipeline.write().overwrite().save(pipe_path)
         loaded_pipeline = Pipeline.read().load(pipe_path)
         token_after_save = model.transform(self.data).select("token_views").take(1)[0].token_views.split("@")[2]
@@ -496,24 +534,30 @@ class SpellCheckerTestSpec(unittest.TestCase):
 
     def setUp(self):
         self.prediction_data = SparkContextForTest.data
-        text_file = "file:///" + os.getcwd() + "/../src/test/resources/spell/sherlockholmes.txt"
+        text_file = (
+            f"file:///{os.getcwd()}/../src/test/resources/spell/sherlockholmes.txt"
+        )
         self.train_data = SparkContextForTest.spark.read.text(text_file)
         self.train_data = self.train_data.withColumnRenamed("value", "text")
 
     def runTest(self):
 
         document_assembler = DocumentAssembler() \
-            .setInputCol("text") \
-            .setOutputCol("document")
+                .setInputCol("text") \
+                .setOutputCol("document")
 
         tokenizer = Tokenizer() \
-            .setInputCols(["document"]) \
-            .setOutputCol("token")
+                .setInputCols(["document"]) \
+                .setOutputCol("token")
 
-        spell_checker = NorvigSweetingApproach() \
-            .setInputCols(["token"]) \
-            .setOutputCol("spell") \
-            .setDictionary("file:///" + os.getcwd() + "/../src/test/resources/spell/words.txt")
+        spell_checker = (
+            NorvigSweetingApproach()
+            .setInputCols(["token"])
+            .setOutputCol("spell")
+            .setDictionary(
+                f"file:///{os.getcwd()}/../src/test/resources/spell/words.txt"
+            )
+        )
 
         pipeline = Pipeline(stages=[
             document_assembler,
@@ -559,7 +603,9 @@ class SymmetricDeleteTestSpec(unittest.TestCase):
 
     def setUp(self):
         self.prediction_data = SparkContextForTest.data
-        text_file = "file:///" + os.getcwd() + "/../src/test/resources/spell/sherlockholmes.txt"
+        text_file = (
+            f"file:///{os.getcwd()}/../src/test/resources/spell/sherlockholmes.txt"
+        )
         self.train_data = SparkContextForTest.spark.read.text(text_file)
         self.train_data = self.train_data.withColumnRenamed("value", "text")
 
@@ -591,7 +637,9 @@ class ContextSpellCheckerTestSpec(unittest.TestCase):
 
     def setUp(self):
         self.prediction_data = SparkContextForTest.data
-        text_file = "file:///" + os.getcwd() + "/../src/test/resources/spell/sherlockholmes.txt"
+        text_file = (
+            f"file:///{os.getcwd()}/../src/test/resources/spell/sherlockholmes.txt"
+        )
         self.train_data = SparkContextForTest.spark.read.text(text_file)
         self.train_data = self.train_data.withColumnRenamed("value", "text")
 
@@ -630,13 +678,13 @@ class ParamsGettersTestSpec(unittest.TestCase):
                 param_name = param.name
                 camelized_param = re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), param_name)
                 assert(hasattr(a, param_name))
-                param_value = getattr(a, "get" + camelized_param)()
+                param_value = getattr(a, f"get{camelized_param}")()
                 assert(param_value is None or param_value is not None)
         # Try a getter
         sentence_detector = SentenceDetector() \
-            .setInputCols(["document"]) \
-            .setOutputCol("sentence") \
-            .setCustomBounds(["%%"])
+                .setInputCols(["document"]) \
+                .setOutputCol("sentence") \
+                .setCustomBounds(["%%"])
         assert(sentence_detector.getOutputCol() == "sentence")
         assert(sentence_detector.getCustomBounds() == ["%%"])
         # Try a default getter
@@ -648,14 +696,18 @@ class DependencyParserTreeBankTestSpec(unittest.TestCase):
 
     def setUp(self):
         self.data = SparkContextForTest.spark \
-            .createDataFrame([["I saw a girl with a telescope"]]).toDF("text")
-        self.corpus = os.getcwd() + "/../src/test/resources/anc-pos-corpus-small/"
-        self.dependency_treebank = os.getcwd() + "/../src/test/resources/parser/unlabeled/dependency_treebank"
+                .createDataFrame([["I saw a girl with a telescope"]]).toDF("text")
+        self.corpus = f"{os.getcwd()}/../src/test/resources/anc-pos-corpus-small/"
+        self.dependency_treebank = f"{os.getcwd()}/../src/test/resources/parser/unlabeled/dependency_treebank"
         from sparknlp.training import POS
-        self.train_pos = POS().readDataset(SparkContextForTest.spark,
-                                           os.getcwd() + "/../src/test/resources/anc-pos-corpus-small/test-training.txt",
-                                           delimiter="|", outputPosCol="tags", outputDocumentCol="document",
-                                           outputTextCol="text")
+        self.train_pos = POS().readDataset(
+            SparkContextForTest.spark,
+            f"{os.getcwd()}/../src/test/resources/anc-pos-corpus-small/test-training.txt",
+            delimiter="|",
+            outputPosCol="tags",
+            outputDocumentCol="document",
+            outputTextCol="text",
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -694,14 +746,18 @@ class DependencyParserConllUTestSpec(unittest.TestCase):
 
     def setUp(self):
         self.data = SparkContextForTest.spark \
-            .createDataFrame([["I saw a girl with a telescope"]]).toDF("text")
-        self.corpus = os.getcwd() + "/../src/test/resources/anc-pos-corpus-small/"
-        self.conllu = os.getcwd() + "/../src/test/resources/parser/unlabeled/conll-u/train_small.conllu.txt"
+                .createDataFrame([["I saw a girl with a telescope"]]).toDF("text")
+        self.corpus = f"{os.getcwd()}/../src/test/resources/anc-pos-corpus-small/"
+        self.conllu = f"{os.getcwd()}/../src/test/resources/parser/unlabeled/conll-u/train_small.conllu.txt"
         from sparknlp.training import POS
-        self.train_pos = POS().readDataset(SparkContextForTest.spark,
-                                           os.getcwd() + "/../src/test/resources/anc-pos-corpus-small/test-training.txt",
-                                           delimiter="|", outputPosCol="tags", outputDocumentCol="document",
-                                           outputTextCol="text")
+        self.train_pos = POS().readDataset(
+            SparkContextForTest.spark,
+            f"{os.getcwd()}/../src/test/resources/anc-pos-corpus-small/test-training.txt",
+            delimiter="|",
+            outputPosCol="tags",
+            outputDocumentCol="document",
+            outputTextCol="text",
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -740,15 +796,19 @@ class TypedDependencyParserConllUTestSpec(unittest.TestCase):
 
     def setUp(self):
         self.data = SparkContextForTest.spark \
-            .createDataFrame([["I saw a girl with a telescope"]]).toDF("text")
-        self.corpus = os.getcwd() + "/../src/test/resources/anc-pos-corpus-small/"
-        self.conllu = os.getcwd() + "/../src/test/resources/parser/unlabeled/conll-u/train_small.conllu.txt"
-        self.conllu = os.getcwd() + "/../src/test/resources/parser/labeled/train_small.conllu.txt"
+                .createDataFrame([["I saw a girl with a telescope"]]).toDF("text")
+        self.corpus = f"{os.getcwd()}/../src/test/resources/anc-pos-corpus-small/"
+        self.conllu = f"{os.getcwd()}/../src/test/resources/parser/unlabeled/conll-u/train_small.conllu.txt"
+        self.conllu = f"{os.getcwd()}/../src/test/resources/parser/labeled/train_small.conllu.txt"
         from sparknlp.training import POS
-        self.train_pos = POS().readDataset(SparkContextForTest.spark,
-                                           os.getcwd() + "/../src/test/resources/anc-pos-corpus-small/test-training.txt",
-                                           delimiter="|", outputPosCol="tags", outputDocumentCol="document",
-                                           outputTextCol="text")
+        self.train_pos = POS().readDataset(
+            SparkContextForTest.spark,
+            f"{os.getcwd()}/../src/test/resources/anc-pos-corpus-small/test-training.txt",
+            delimiter="|",
+            outputPosCol="tags",
+            outputDocumentCol="document",
+            outputTextCol="text",
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -794,15 +854,19 @@ class TypedDependencyParserConll2009TestSpec(unittest.TestCase):
 
     def setUp(self):
         self.data = SparkContextForTest.spark \
-            .createDataFrame([["I saw a girl with a telescope"]]).toDF("text")
-        self.corpus = os.getcwd() + "/../src/test/resources/anc-pos-corpus-small/"
-        self.tree_bank = os.getcwd() + "/../src/test/resources/parser/unlabeled/dependency_treebank"
-        self.conll2009 = os.getcwd() + "/../src/test/resources/parser/labeled/example.train.conll2009"
+                .createDataFrame([["I saw a girl with a telescope"]]).toDF("text")
+        self.corpus = f"{os.getcwd()}/../src/test/resources/anc-pos-corpus-small/"
+        self.tree_bank = f"{os.getcwd()}/../src/test/resources/parser/unlabeled/dependency_treebank"
+        self.conll2009 = f"{os.getcwd()}/../src/test/resources/parser/labeled/example.train.conll2009"
         from sparknlp.training import POS
-        self.train_pos = POS().readDataset(SparkContextForTest.spark,
-                                           os.getcwd() + "/../src/test/resources/anc-pos-corpus-small/test-training.txt",
-                                           delimiter="|", outputPosCol="tags", outputDocumentCol="document",
-                                           outputTextCol="text")
+        self.train_pos = POS().readDataset(
+            SparkContextForTest.spark,
+            f"{os.getcwd()}/../src/test/resources/anc-pos-corpus-small/test-training.txt",
+            delimiter="|",
+            outputPosCol="tags",
+            outputDocumentCol="document",
+            outputTextCol="text",
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -851,20 +915,24 @@ class ChunkDocSerializingTestSpec(unittest.TestCase):
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
-            .setInputCol("text") \
-            .setOutputCol("document")
+                .setInputCol("text") \
+                .setOutputCol("document")
         tokenizer = Tokenizer() \
-            .setInputCols(["document"]) \
-            .setOutputCol("token")
-        entity_extractor = TextMatcher() \
-            .setOutputCol("entity") \
-            .setEntities(path="file:///" + os.getcwd() + "/../src/test/resources/entity-extractor/test-chunks.txt")
+                .setInputCols(["document"]) \
+                .setOutputCol("token")
+        entity_extractor = (
+            TextMatcher()
+            .setOutputCol("entity")
+            .setEntities(
+                path=f"file:///{os.getcwd()}/../src/test/resources/entity-extractor/test-chunks.txt"
+            )
+        )
         chunk2doc = Chunk2Doc() \
-            .setInputCols(['entity']) \
-            .setOutputCol('entity_doc')
+                .setInputCols(['entity']) \
+                .setOutputCol('entity_doc')
         doc2chunk = Doc2Chunk() \
-            .setInputCols(['entity_doc']) \
-            .setOutputCol('entity_rechunk')
+                .setInputCols(['entity_doc']) \
+                .setOutputCol('entity_rechunk')
 
         pipeline = Pipeline(stages=[
             document_assembler,
@@ -875,15 +943,16 @@ class ChunkDocSerializingTestSpec(unittest.TestCase):
         ])
 
         model = pipeline.fit(self.data)
-        pipe_path = "file:///" + os.getcwd() + "/tmp_chunkdoc"
+        pipe_path = f"file:///{os.getcwd()}/tmp_chunkdoc"
         model.write().overwrite().save(pipe_path)
         PipelineModel.load(pipe_path)
 
 
 class SentenceEmbeddingsTestSpec(unittest.TestCase):
     def setUp(self):
-        self.data = SparkContextForTest.spark.read.option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/embeddings/sentence_embeddings.csv")
+        self.data = SparkContextForTest.spark.read.option("header", "true").csv(
+            path=f"file:///{os.getcwd()}/../src/test/resources/embeddings/sentence_embeddings.csv"
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -1030,8 +1099,9 @@ class NGramGeneratorTestSpec(unittest.TestCase):
 
 class ChunkEmbeddingsTestSpec(unittest.TestCase):
     def setUp(self):
-        self.data = SparkContextForTest.spark.read.option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/embeddings/sentence_embeddings.csv")
+        self.data = SparkContextForTest.spark.read.option("header", "true").csv(
+            path=f"file:///{os.getcwd()}/../src/test/resources/embeddings/sentence_embeddings.csv"
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -1075,8 +1145,9 @@ class ChunkEmbeddingsTestSpec(unittest.TestCase):
 class EmbeddingsFinisherTestSpec(unittest.TestCase):
 
     def setUp(self):
-        self.data = SparkContextForTest.spark.read.option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/embeddings/sentence_embeddings.csv")
+        self.data = SparkContextForTest.spark.read.option("header", "true").csv(
+            path=f"file:///{os.getcwd()}/../src/test/resources/embeddings/sentence_embeddings.csv"
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -1123,8 +1194,9 @@ class EmbeddingsFinisherTestSpec(unittest.TestCase):
 
 class UniversalSentenceEncoderTestSpec(unittest.TestCase):
     def setUp(self):
-        self.data = SparkSessionForTest.spark.read.option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/embeddings/sentence_embeddings.csv")
+        self.data = SparkSessionForTest.spark.read.option("header", "true").csv(
+            path=f"file:///{os.getcwd()}/../src/test/resources/embeddings/sentence_embeddings.csv"
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -1150,8 +1222,9 @@ class UniversalSentenceEncoderTestSpec(unittest.TestCase):
 class ElmoEmbeddingsTestSpec(unittest.TestCase):
 
     def setUp(self):
-        self.data = SparkContextForTest.spark.read.option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/embeddings/sentence_embeddings.csv")
+        self.data = SparkContextForTest.spark.read.option("header", "true").csv(
+            path=f"file:///{os.getcwd()}/../src/test/resources/embeddings/sentence_embeddings.csv"
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -1181,8 +1254,9 @@ class ElmoEmbeddingsTestSpec(unittest.TestCase):
 
 class ClassifierDLTestSpec(unittest.TestCase):
     def setUp(self):
-        self.data = SparkSessionForTest.spark.read.option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/classifier/sentiment.csv")
+        self.data = SparkSessionForTest.spark.read.option("header", "true").csv(
+            path=f"file:///{os.getcwd()}/../src/test/resources/classifier/sentiment.csv"
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -1218,8 +1292,9 @@ class ClassifierDLTestSpec(unittest.TestCase):
 class AlbertEmbeddingsTestSpec(unittest.TestCase):
 
     def setUp(self):
-        self.data = SparkContextForTest.spark.read.option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/embeddings/sentence_embeddings.csv")
+        self.data = SparkContextForTest.spark.read.option("header", "true").csv(
+            path=f"file:///{os.getcwd()}/../src/test/resources/embeddings/sentence_embeddings.csv"
+        )
 
     def runTest(self):
 
@@ -1249,8 +1324,9 @@ class AlbertEmbeddingsTestSpec(unittest.TestCase):
 
 class SentimentDLTestSpec(unittest.TestCase):
     def setUp(self):
-        self.data = SparkSessionForTest.spark.read.option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/classifier/sentiment.csv")
+        self.data = SparkSessionForTest.spark.read.option("header", "true").csv(
+            path=f"file:///{os.getcwd()}/../src/test/resources/classifier/sentiment.csv"
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -1284,8 +1360,9 @@ class SentimentDLTestSpec(unittest.TestCase):
 
 class XlnetEmbeddingsTestSpec(unittest.TestCase):
     def setUp(self):
-        self.data = SparkContextForTest.spark.read.option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/embeddings/sentence_embeddings.csv")
+        self.data = SparkContextForTest.spark.read.option("header", "true").csv(
+            path=f"file:///{os.getcwd()}/../src/test/resources/embeddings/sentence_embeddings.csv"
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -1320,10 +1397,14 @@ class NerDLModelTestSpec(unittest.TestCase):
 
 class MultiClassifierDLTestSpec(unittest.TestCase):
     def setUp(self):
-        self.data = SparkSessionForTest.spark.read.option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/classifier/e2e.csv") \
-            .withColumn("labels", split("mr", ", ")) \
+        self.data = (
+            SparkSessionForTest.spark.read.option("header", "true")
+            .csv(
+                path=f"file:///{os.getcwd()}/../src/test/resources/classifier/e2e.csv"
+            )
+            .withColumn("labels", split("mr", ", "))
             .drop("mr")
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -1415,8 +1496,9 @@ class YakeModelTestSpec(unittest.TestCase):
 
 class SentenceDetectorDLTestSpec(unittest.TestCase):
     def setUp(self):
-        self.data = SparkContextForTest.spark.read.option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/embeddings/sentence_embeddings.csv")
+        self.data = SparkContextForTest.spark.read.option("header", "true").csv(
+            path=f"file:///{os.getcwd()}/../src/test/resources/embeddings/sentence_embeddings.csv"
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -1441,11 +1523,15 @@ class WordSegmenterTestSpec(unittest.TestCase):
     def setUp(self):
         from sparknlp.training import POS
         self.data = SparkContextForTest.spark.createDataFrame([["十四不是四十"]]) \
-            .toDF("text").cache()
-        self.train = POS().readDataset(SparkContextForTest.spark,
-                                       os.getcwd() + "/../src/test/resources/word-segmenter/chinese_train.utf8",
-                                       delimiter="|", outputPosCol="tags", outputDocumentCol="document",
-                                       outputTextCol="text")
+                .toDF("text").cache()
+        self.train = POS().readDataset(
+            SparkContextForTest.spark,
+            f"{os.getcwd()}/../src/test/resources/word-segmenter/chinese_train.utf8",
+            delimiter="|",
+            outputPosCol="tags",
+            outputDocumentCol="document",
+            outputTextCol="text",
+        )
     def runTest(self):
         document_assembler = DocumentAssembler() \
             .setInputCol("text") \
@@ -1467,10 +1553,13 @@ class WordSegmenterTestSpec(unittest.TestCase):
 class LanguageDetectorDLTestSpec(unittest.TestCase):
 
     def setUp(self):
-        self.data = SparkContextForTest.spark.read \
-            .option("delimiter", "|") \
-            .option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/language-detector/multilingual_sample.txt")
+        self.data = (
+            SparkContextForTest.spark.read.option("delimiter", "|")
+            .option("header", "true")
+            .csv(
+                path=f"file:///{os.getcwd()}/../src/test/resources/language-detector/multilingual_sample.txt"
+            )
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -1804,8 +1893,9 @@ class GraphExtractionTestSpec(unittest.TestCase):
 
 class BertForTokenClassificationTestSpec(unittest.TestCase):
     def setUp(self):
-        self.data = SparkContextForTest.spark.read.option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/embeddings/sentence_embeddings.csv")
+        self.data = SparkContextForTest.spark.read.option("header", "true").csv(
+            path=f"file:///{os.getcwd()}/../src/test/resources/embeddings/sentence_embeddings.csv"
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \
@@ -1830,8 +1920,9 @@ class BertForTokenClassificationTestSpec(unittest.TestCase):
 
 class RoBertaSentenceEmbeddingsTestSpec(unittest.TestCase):
     def setUp(self):
-        self.data = SparkContextForTest.spark.read.option("header", "true") \
-            .csv(path="file:///" + os.getcwd() + "/../src/test/resources/embeddings/sentence_embeddings.csv")
+        self.data = SparkContextForTest.spark.read.option("header", "true").csv(
+            path=f"file:///{os.getcwd()}/../src/test/resources/embeddings/sentence_embeddings.csv"
+        )
 
     def runTest(self):
         document_assembler = DocumentAssembler() \

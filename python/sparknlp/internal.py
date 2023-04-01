@@ -123,7 +123,7 @@ class RecursiveEstimator(JavaEstimator, ABC):
 
     def fit(self, dataset, params=None, pipeline=None):
         if params is None:
-            params = dict()
+            params = {}
         if isinstance(params, (list, tuple)):
             models = [None] * len(params)
             for index, model in self.fitMultiple(dataset, params):
@@ -148,14 +148,14 @@ class RecursiveTransformer(JavaModel):
 
     def transform_recursive(self, dataset, recursive_pipeline, params=None):
         if params is None:
-            params = dict()
+            params = {}
         if isinstance(params, dict):
             if params:
                 return self.copy(params)._transform_recursive(dataset, recursive_pipeline)
             else:
                 return self._transform_recursive(dataset, recursive_pipeline)
         else:
-            raise ValueError("Params must be a param map but got %s." % type(params))
+            raise ValueError(f"Params must be a param map but got {type(params)}.")
 
 
 class ExtendedJavaWrapper(JavaWrapper):
@@ -184,12 +184,10 @@ class ExtendedJavaWrapper(JavaWrapper):
         return java_array
 
     def new_java_array_string(self, pylist):
-        java_array = self._new_java_array(pylist, self.sc._gateway.jvm.java.lang.String)
-        return java_array
+        return self._new_java_array(pylist, self.sc._gateway.jvm.java.lang.String)
 
     def new_java_array_integer(self, pylist):
-        java_array = self._new_java_array(pylist, self.sc._gateway.jvm.java.lang.Integer)
-        return java_array
+        return self._new_java_array(pylist, self.sc._gateway.jvm.java.lang.Integer)
 
 
 class _RegexRule(ExtendedJavaWrapper):
@@ -210,8 +208,13 @@ class _ConfigLoaderGetter(ExtendedJavaWrapper):
 
 class _DownloadModel(ExtendedJavaWrapper):
     def __init__(self, reader, name, language, remote_loc, validator):
-        super(_DownloadModel, self).__init__("com.johnsnowlabs.nlp.pretrained." + validator + ".downloadModel", reader,
-                                             name, language, remote_loc)
+        super(_DownloadModel, self).__init__(
+            f"com.johnsnowlabs.nlp.pretrained.{validator}.downloadModel",
+            reader,
+            name,
+            language,
+            remote_loc,
+        )
 
 
 class _DownloadPipeline(ExtendedJavaWrapper):

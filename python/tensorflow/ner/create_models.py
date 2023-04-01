@@ -12,7 +12,7 @@ def create_graph(output_path, number_of_tags, embeddings_dimension, number_of_ch
         raise Exception(f'Spark NLP is compiled with TensorFlow 1.15.0. Please use such version and not {tf.__version__}.')
     tf.reset_default_graph()
     name_prefix = 'blstm'
-    model_name = name_prefix+'_{}_{}_{}_{}'.format(number_of_tags, embeddings_dimension, lstm_size, number_of_chars)
+    model_name = f'{name_prefix}_{number_of_tags}_{embeddings_dimension}_{lstm_size}_{number_of_chars}'
     with tf.Session() as session:
         ner = ner_model.NerModel(session=None)
         ner.add_cnn_char_repr(number_of_chars, 25, 30)
@@ -23,11 +23,11 @@ def create_graph(output_path, number_of_tags, embeddings_dimension, number_of_ch
         ner.add_training_op(5)
         ner.init_variables()
         tf.train.Saver()
-        file_name = model_name + '.pb'
+        file_name = f'{model_name}.pb'
         tf.train.write_graph(ner.session.graph, output_path, file_name, False)
         ner.close()
         session.close()
-        print(f'Graph created successfully')
+        print('Graph created successfully')
 
 
 def main(arguments):

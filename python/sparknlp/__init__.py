@@ -166,6 +166,9 @@ def start(gpu=False,
 
     def start_with_realtime_output():
 
+
+
+
         class SparkWithCustomGateway:
 
             def __init__(self):
@@ -221,9 +224,6 @@ def start(gpu=False,
                 for line in iter(self.process.stderr.readline, b''):
                     if output_level == 0:
                         print(RED + '{0}'.format(line.decode('utf-8')) + RESET, end='')
-                    else:
-                        # output just info
-                        pass
 
             def shutdown(self):
                 self.spark_session.stop()
@@ -232,6 +232,7 @@ def start(gpu=False,
 
                 self.out_thread.join()
                 self.error_thread.join()
+
 
         return SparkWithCustomGateway()
 
